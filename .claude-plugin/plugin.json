@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "laravel-blade",
+  "displayName": "Laravel Blade Clean Architecture + Modular Monolith",
+  "version": "1.0.0",
+  "description": "Scaffold, extend, or review a Laravel Blade fullstack project using Clean Architecture combined with a Modular Monolith approach. Supports new-project, new-module, and review commands.",
+  "author": {
+    "name": "Sutrisno_Tris",
+    "email": "sutris.tris032@gmail.com"
+  },
+  "keywords": ["laravel", "php", "blade", "clean-architecture", "modular-monolith", "eloquent", "crud", "tailwind"],
+  "license": "MIT",
+  "skills": "./skills/"
+}

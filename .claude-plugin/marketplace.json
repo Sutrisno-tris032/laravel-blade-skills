@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace-manifest.json",
+  "name": "laravel-blade-skills",
+  "description": "Marketplace skill untuk Laravel Blade fullstack dengan Clean Architecture dan Modular Monolith",
+  "owner": {
+    "name": "Sutrisno_Tris",
+    "email": "sutris.tris032@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "laravel-blade",
+      "source": "./",
+      "description": "Scaffold, extend, or review a Laravel Blade fullstack project using Clean Architecture combined with a Modular Monolith approach.",
+      "version": "1.0.0",
+      "keywords": ["laravel", "php", "blade", "clean-architecture", "modular-monolith", "eloquent", "crud", "tailwind"]
+    }
+  ]
+}
