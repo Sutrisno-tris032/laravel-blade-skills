@@ -62,8 +62,8 @@ Layout utama dengan sidebar fixed + sticky navbar. Mendukung mobile responsive v
 
     {{-- User Profile --}}
     <div class="flex-shrink-0 border-t border-gray-200 p-3">
-        <div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-             x-data="{ open: false }" @click="open = !open" class="relative">
+        <div class="relative flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+             x-data="{ open: false }" @click="open = !open">
             <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                 <span class="text-white text-sm font-medium">
                     {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
@@ -548,8 +548,8 @@ Untuk dashboard metrics.
 
 **Penggunaan — Non-konfirmasi (form, detail, dsb.):**
 ```blade
-{{-- Trigger modal via event --}}
-<x-button variant="secondary" onclick="$dispatch('open-modal', { id: 'edit-notes' })">
+{{-- Trigger modal via event — WAJIB @click, bukan onclick: $dispatch hanya tersedia di dalam directive Alpine --}}
+<x-button variant="secondary" @click="$dispatch('open-modal', { id: 'edit-notes' })">
     Edit Catatan
 </x-button>
 
@@ -872,7 +872,8 @@ Untuk dashboard metrics.
     {{-- Preview file yang sudah ada (edit form) --}}
     @if ($current)
         <div class="mb-2 flex items-center gap-3">
-            @if (str_starts_with(mime_content_type(storage_path('app/public/' . $current)) ?? '', 'image/'))
+            {{-- mime_content_type() return false (bukan null) jika gagal, karena itu pakai ?: bukan ?? --}}
+            @if (str_starts_with(mime_content_type(storage_path('app/public/' . $current)) ?: '', 'image/'))
                 <img src="{{ Storage::url($current) }}"
                      alt="Current file"
                      class="w-16 h-16 rounded-lg object-cover border border-gray-200">

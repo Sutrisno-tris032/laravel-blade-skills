@@ -307,7 +307,7 @@ final class {Entity}Policy
 
     public function forceDelete(User $user, {Entity} ${entity}): bool
     {
-        return $user->isAdmin();  // hanya admin yang bisa hard delete
+        return true;  // atau: $user->hasRole('admin') — jangan panggil method yang belum ada di model User
     }
 }
 ```
@@ -635,7 +635,7 @@ final class {Entity}Controller extends Controller
     public function create(): View
     {
         // === Jika ada relasi belongsTo (pertanyaan g): load options untuk <x-form.select> ===
-        // Contoh: $categories = \App\Modules\Categories\Domain\Models\Category::select('id','name')->get();
+        // Contoh: $categories = $this->categoryRepository->options();  — lihat §Pola Relasi di Form
         // return view('{module}.{entity}.create', compact('categories'));
         // ===
         return view('{module}.{entity}.create');
@@ -696,6 +696,7 @@ namespace App\Modules\{Module}\Presentation\Requests;
 use App\Modules\{Module}\Application\DTOs\Create{Entity}DTO;
 use App\Modules\{Module}\Domain\Models\{Entity};
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class Create{Entity}Request extends FormRequest
 {
@@ -708,7 +709,9 @@ final class Create{Entity}Request extends FormRequest
     {
         return [
             // === GANTI: sesuai field entity ===
-            'name'        => ['required', 'string', 'max:255', 'unique:{entities},name'],
+            // Jika entity pakai Soft Delete (pertanyaan e): tambahkan ->whereNull('deleted_at')
+            // agar nama yang sudah di-soft-delete tidak memblokir pembuatan record baru dengan nama sama.
+            'name'        => ['required', 'string', 'max:255', Rule::unique('{entities}', 'name')],
             'price'       => ['required', 'numeric', 'min:0'],
             'stock'       => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -758,6 +761,7 @@ namespace App\Modules\{Module}\Presentation\Requests;
 use App\Modules\{Module}\Application\Contracts\{Entity}RepositoryInterface;
 use App\Modules\{Module}\Application\DTOs\Update{Entity}DTO;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class Update{Entity}Request extends FormRequest
 {
@@ -779,7 +783,8 @@ final class Update{Entity}Request extends FormRequest
         $id = $this->route('{entity}');
         return [
             // === GANTI: sesuai field entity — biasanya sama dengan Create, kecuali unique pakai ignore ===
-            'name'        => ['required', 'string', 'max:255', "unique:{entities},name,{$id}"],
+            // Jika entity pakai Soft Delete (pertanyaan e): tambahkan ->whereNull('deleted_at')
+            'name'        => ['required', 'string', 'max:255', Rule::unique('{entities}', 'name')->ignore($id)],
             'price'       => ['required', 'numeric', 'min:0'],
             'stock'       => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -1048,8 +1053,8 @@ Route::middleware(['web', 'auth'])->group(function () {
 ### `resources/views/{module}/{entity}/_partials/form.blade.php`
 
 ```blade
-{{-- Form partial — digunakan di create.blade.php dan edit.blade.php --}}
-@props(['entity' => null])
+{{-- Form partial — di-@include (bukan komponen) dari create.blade.php dan edit.blade.php --}}
+{{-- $entity WAJIB selalu di-pass dari pemanggil via @include(..., ['entity' => ...]) — @props tidak berlaku untuk @include --}}
 
 {{-- === GANTI: field sesuai entity — gunakan komponen <x-form.*> === --}}
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -1148,7 +1153,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         <form method="POST" action="{{ route('{module}.store') }}">
             @csrf
 
-            @include('{module}.{entity}._partials.form')
+            @include('{module}.{entity}._partials.form', ['entity' => null])
 
             <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end gap-3">
                 <x-button variant="secondary" href="{{ route('{module}.index') }}">Batal</x-button>
@@ -1267,15 +1272,37 @@ Bagian ini digunakan berdasarkan jawaban user saat `new-module`. Terapkan pola y
 
 ### Pola Relasi di Form (pertanyaan g)
 
-**Controller `create()` dan `edit()`** — load options dari modul lain:
+**Dependency Rule tetap berlaku lintas modul** — Controller TIDAK BOLEH query Eloquent model modul lain secara langsung. Tambahkan method khusus (mis. `options()`) di Repository Interface modul terkait (mis. `CategoryRepositoryInterface`), lalu inject interface itu — bukan Model-nya — via constructor:
 
 ```php
-public function create(): View
+// Tambahkan ke App\Modules\Categories\Application\Contracts\CategoryRepositoryInterface
+public function options(): \Illuminate\Support\Collection;
+```
+
+```php
+// Implementasi di App\Modules\Categories\Infrastructure\Repositories\EloquentCategoryRepository
+public function options(): \Illuminate\Support\Collection
 {
-    $categories = \App\Modules\Categories\Domain\Models\Category::select('id', 'name')
+    return Category::query()
+        ->select('id', 'name')
         ->where('is_active', true)
         ->orderBy('name')
-        ->get();
+        ->pluck('name', 'id');
+}
+```
+
+**Controller `create()` dan `edit()`** — inject `CategoryRepositoryInterface` via constructor (tambahkan ke daftar constructor property yang sudah ada), lalu panggil `options()`:
+
+```php
+public function __construct(
+    private readonly {Entity}RepositoryInterface $repository,
+    private readonly CategoryRepositoryInterface  $categoryRepository, // ← tambahan untuk relasi
+    // ...Actions lain seperti biasa
+) {}
+
+public function create(): View
+{
+    $categories = $this->categoryRepository->options();
 
     return view('{module}.{entity}.create', compact('categories'));
 }
@@ -1283,10 +1310,7 @@ public function create(): View
 public function edit(int $id): View
 {
     ${entity}   = $this->repository->findByIdOrFail($id);
-    $categories = \App\Modules\Categories\Domain\Models\Category::select('id', 'name')
-        ->where('is_active', true)
-        ->orderBy('name')
-        ->get();
+    $categories = $this->categoryRepository->options();
 
     return view('{module}.{entity}.edit', compact('{entity}', 'categories'));
 }
@@ -1658,7 +1682,7 @@ return [
 - [ ] Blade views menggunakan `<x-layouts.app>`, `<x-card>`, `<x-pagination>`, `<x-badge>`, `<x-empty-state>`
 - [ ] Form partial menggunakan `<x-form.input>`, `<x-form.select>`, `<x-form.textarea>`, `<x-form.checkbox>`
 - [ ] Tombol form menggunakan `<x-button>` — TIDAK ADA raw `<button class="...">` atau `<a class="...">` untuk aksi
-- [ ] Flash message via `->with('success'/'error', '...')` di controller — SweetAlert2 toast otomatis, TIDAK ADA `<x-alert />` di view
+- [ ] Flash message via `->with('success'/'error', '...')` di controller — SweetAlert2 toast otomatis, bukan `<x-alert />` (komponen itu hanya untuk inline alert non-flash yang di-pass manual)
 - [ ] Tombol hapus menggunakan `onclick="confirmDelete(...)"` — TIDAK ADA form inline dengan `@method('DELETE')`
 - [ ] Semua output Blade menggunakan `{{ }}` (bukan `{!! !!}` kecuali trusted)
 - [ ] `bootstrap/providers.php` sudah ditambahkan ServiceProvider modul

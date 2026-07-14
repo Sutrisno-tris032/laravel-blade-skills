@@ -494,10 +494,21 @@ Alpine.start();
 
 ## File 4: Update `resources/css/app.css`
 
+> Sintaks berbeda antara Tailwind v3 (Laravel 11) dan v4 (Laravel 12) — lihat `references/packages.md`. Pakai yang sesuai versi yang dipilih user, JANGAN campur keduanya.
+
+**Tailwind v3 (Laravel 11):**
 ```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* SweetAlert2 custom theme */
+@import './sweetalert.css';
+```
+
+**Tailwind v4 (Laravel 12):**
+```css
+@import "tailwindcss";
 
 /* SweetAlert2 custom theme */
 @import './sweetalert.css';
@@ -519,7 +530,7 @@ npm run dev
 
 ## File 6: Update Layout — Flash Message Data Holder
 
-Di `resources/views/layouts/app.blade.php`, tambahkan hidden div setelah `<body>`:
+Di `resources/views/layouts/app.blade.php`, tambahkan hidden div di dalam `<main>`, sebelum `{{ $slot }}` (lihat `templates/project-structure.md` untuk posisi persis):
 
 ```blade
 {{-- Flash messages — dibaca oleh swal.js untuk auto-fire toast --}}

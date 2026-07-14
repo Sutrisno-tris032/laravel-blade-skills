@@ -101,6 +101,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -110,6 +111,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Daftarkan resources/views/layouts/ sebagai namespace anonymous component "layouts"
+        // agar <x-layouts.app> resolve ke resources/views/layouts/app.blade.php
+        Blade::anonymousComponentPath(resource_path('views/layouts'), 'layouts');
+
         // Mencegah N+1 — throw exception di development, log di production
         Model::preventLazyLoading(! app()->isProduction());
 
@@ -474,10 +479,19 @@ Alpine.start();
 
 ### `resources/css/app.css` (Tailwind)
 
+**Tailwind v3 (Laravel 11):**
 ```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* SweetAlert2 custom theme */
+@import './sweetalert.css';
+```
+
+**Tailwind v4 (Laravel 12):**
+```css
+@import "tailwindcss";
 
 /* SweetAlert2 custom theme */
 @import './sweetalert.css';

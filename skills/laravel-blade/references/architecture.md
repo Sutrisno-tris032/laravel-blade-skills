@@ -377,7 +377,7 @@ final class ProductController extends Controller
     public function update(UpdateProductRequest $request, int $id): RedirectResponse
     {
         $product = $this->repository->findByIdOrFail($id);
-        $this->updateAction->handle($product, UpdateProductDTO::fromRequest($request));
+        $this->updateAction->handle($product, $request->toDTO());
 
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil diperbarui.');

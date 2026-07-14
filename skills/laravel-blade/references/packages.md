@@ -230,7 +230,9 @@ composer require pestphp/pest pestphp/pest-plugin-laravel --dev
 
 ---
 
-## `composer.json` — Template Dasar
+## `composer.json` — Referensi (bukan untuk ditulis ulang)
+
+> **Catatan:** `composer create-project` di `new-project` sudah menghasilkan `composer.json` sendiri — JANGAN timpa file itu dengan template di bawah. Blok ini hanya referensi versi paket untuk **Laravel 11**; untuk Laravel 12, sesuaikan versi tiap paket dengan kolom "Laravel 12" di Compatibility Matrix di atas sebelum `composer require` paket tambahan (Breeze, Pest, dsb.).
 
 ```json
 {

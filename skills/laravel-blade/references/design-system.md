@@ -327,9 +327,15 @@ Chevron kanan→ heroicon-m-chevron-right
 
 ---
 
-## Dark Mode
+## Dark Mode (opsional — tidak di-scaffold otomatis)
 
-Tailwind `darkMode: 'class'` sudah diaktifkan di `tailwind.config.js`. Toggle via Alpine.js:
+Fitur ini TIDAK termasuk dalam file yang dibuat otomatis saat `new-project`. Jika user memintanya, tambahkan manual:
+
+- **Tailwind v3** (Laravel 11): `darkMode: 'class'` di `tailwind.config.js` (lihat `templates/project-structure.md`).
+- **Tailwind v4** (Laravel 12, tidak ada `tailwind.config.js`): tambahkan `@custom-variant dark (&:where(.dark, .dark *));` di `resources/css/app.css`.
+- Toggle button (di bawah) taruh manual di `navbar.blade.php`, dan gabungkan `Alpine.store('theme', {...})` ke `resources/js/app.js` (setelah `Alpine.store` untuk swal jika ada, sebelum `Alpine.start()`).
+
+Toggle via Alpine.js:
 
 ```blade
 <!-- Toggle button di navbar -->

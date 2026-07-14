@@ -76,6 +76,8 @@ Baca `references/architecture.md` untuk penjelasan lengkap. Ringkasan:
    [2] Tidak ada (custom nanti)
    ```
 
+   > **Catatan:** `breeze:install blade` selalu scaffold view auth dengan Tailwind CSS. Jika user pilih Bootstrap 5 (d) + Breeze (e), beri tahu bahwa view bawaan Breeze (login, register, dsb.) perlu di-convert manual ke Bootstrap setelah instalasi — skill ini tidak menyediakan versi Bootstrap dari view Breeze.
+
 2. Baca `references/packages.md` → bagian **Compatibility Matrix** untuk package yang sesuai.
 
 3. Baca `templates/project-structure.md` untuk struktur folder dan isi file lengkap.
@@ -87,16 +89,23 @@ Baca `references/architecture.md` untuk penjelasan lengkap. Ringkasan:
    composer create-project laravel/laravel {ProjectName} "^{version}.0"
    cd {ProjectName}
 
-   # Jika pilih Tailwind
-   npm install
-
-   # Jika pilih Breeze
+   # Jika pilih Breeze (breeze:install sudah menambahkan package Tailwind yang sesuai ke package.json)
    composer require laravel/breeze --dev
    php artisan breeze:install blade
-   npm install && npm run build
 
-   # Jika pilih Bootstrap
-   npm install bootstrap @popperjs/core
+   # Jika pilih Tailwind TANPA Breeze — install manual sesuai versi Laravel
+   # (paket persis: lihat references/packages.md § Tailwind v3 atau v4)
+   npm install -D tailwindcss@^3.4 @tailwindcss/forms @tailwindcss/typography autoprefixer postcss   # Laravel 11 (v3)
+   npm install -D tailwindcss@^4.0 @tailwindcss/vite                                                 # Laravel 12 (v4)
+
+   # Jika pilih Bootstrap 5
+   npm install bootstrap @popperjs/core sass
+
+   # WAJIB terlepas dari CSS framework — dipakai oleh resources/js/app.js & swal.js
+   npm install alpinejs sweetalert2
+
+   npm install
+   npm run build   # verifikasi build sukses sebelum lanjut
    ```
 
 5. Baca `templates/sweetalert-config.md` untuk konfigurasi SweetAlert2.
@@ -131,6 +140,7 @@ Baca `references/architecture.md` untuk penjelasan lengkap. Ringkasan:
    - `resources/views/dashboard/index.blade.php` — halaman dashboard dengan stat cards
    - `app/Http/Controllers/DashboardController.php`
    - `vite.config.js`
+   - `tailwind.config.js` — **hanya jika Tailwind v3** (Laravel 11 tanpa Breeze); Tailwind v4 (Laravel 12) tidak butuh file ini
    - `.env.example`
    - `.gitignore`
 
@@ -156,6 +166,7 @@ Baca `references/architecture.md` untuk penjelasan lengkap. Ringkasan:
 ### Aturan wajib saat scaffold
 
 - `AppServiceProvider::boot()` WAJIB berisi `Model::preventLazyLoading(! app()->isProduction())`.
+- `AppServiceProvider::boot()` WAJIB berisi `Blade::anonymousComponentPath(resource_path('views/layouts'), 'layouts')` — tanpa ini, `<x-layouts.app>` TIDAK BISA resolve karena file layout ada di `resources/views/layouts/`, bukan `resources/views/components/layouts/`.
 - Layout `app.blade.php` WAJIB include `@stack('scripts')` dan `@stack('styles')`.
 - Setiap Blade component WAJIB menggunakan `<x-component-name>` syntax (bukan `@include`).
 - Route dashboard WAJIB dilindungi middleware `auth`.
@@ -374,7 +385,7 @@ resources/views/{module}/
 
 **DTO & ViewModel**
 - [ ] DTO adalah `readonly` (PHP 8.1+)
-- [ ] DTO punya static method `fromRequest()` untuk hydrate dari Form Request
+- [ ] Form Request punya method `toDTO()` untuk hydrate DTO — DTO TIDAK BOLEH punya static factory (mis. `fromRequest()`) yang import class Presentation
 - [ ] ViewModel tidak akses database (hanya transform data yang sudah ada)
 - [ ] Blade views hanya menerima ViewModel atau array sederhana (bukan Model mentah)
 
@@ -408,7 +419,8 @@ Baca `references/conventions.md` untuk detail. Ringkasan:
 | ViewModel | `{Entity}ViewModel` | `ProductViewModel` |
 | Event | `{Entity}{PastTense}` | `ProductCreated`, `ProductDeleted` |
 | Policy | `{Entity}Policy` | `ProductPolicy` |
-| Table (migration) | `snake_case`, plural | `products`, `order_items` |
+| Table (nama tabel DB) | `snake_case`, plural | `products`, `order_items` |
+| Migration (nama file) | `{timestamp}_create_{table}_table.php` | `2024_01_01_000000_create_products_table.php` |
 | Route name | `{module}.{action}` | `products.index`, `products.store` |
 | View path | `{module}.{entity}.{action}` | `products.product.index` |
 
