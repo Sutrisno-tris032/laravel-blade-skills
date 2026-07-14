@@ -2,6 +2,63 @@
 
 Claude Code skill plugin untuk pengembangan **Laravel Blade Fullstack** dengan **Clean Architecture** dan **Modular Monolith** approach.
 
+## Instalasi
+
+Repo ini sudah dilengkapi `.claude-plugin/marketplace.json` dan `.claude-plugin/plugin.json`, jadi bisa
+langsung didaftarkan sebagai marketplace dan diinstal via Claude Code — tidak perlu clone manual.
+
+### 1. Tambahkan sebagai Marketplace
+
+```
+/plugin marketplace add Sutrisno-tris032/laravel-blade-skills
+```
+
+Ini mendaftarkan repo GitHub `laravel-blade-skills` sebagai sumber marketplace di Claude Code kamu
+(dibaca dari `.claude-plugin/marketplace.json` di root repo). Bentuk lain yang juga valid:
+
+```
+/plugin marketplace add https://github.com/Sutrisno-tris032/laravel-blade-skills.git
+```
+
+Cek marketplace yang sudah terdaftar dengan `/plugin marketplace list`.
+
+### 2. Install Plugin
+
+```
+/plugin install laravel-blade@laravel-blade-skills
+```
+
+Formatnya `{nama-plugin}@{nama-marketplace}` — `laravel-blade` diambil dari `.claude-plugin/plugin.json`,
+`laravel-blade-skills` dari `.claude-plugin/marketplace.json`. Skill di dalamnya (`laravel-blade`) langsung
+aktif setelah install, tidak perlu restart Claude Code — cukup jalankan:
+
+```
+/laravel-blade new-project TokoOnline
+```
+
+Cek daftar plugin yang terinstal dengan `/plugin list`, atau buka UI interaktifnya dengan `/plugin`
+(tab Discover / Installed / Marketplaces).
+
+### Update ke Versi Terbaru
+
+Setelah ada commit baru di repo ini:
+
+```
+/plugin marketplace update laravel-blade-skills
+```
+
+### Uninstall
+
+```
+/plugin uninstall laravel-blade@laravel-blade-skills
+```
+
+Untuk melepas marketplace-nya juga (sekaligus uninstall semua plugin dari situ):
+
+```
+/plugin marketplace remove laravel-blade-skills
+```
+
 ## Skill yang Tersedia
 
 ### `laravel-blade`
@@ -81,17 +138,6 @@ app/Modules/{ModuleName}/
 - **Form Request** — validasi dan otorisasi di luar controller
 - **Blade Components** — `<x-card>`, `<x-pagination>`, `<x-badge>`, dan form components yang reusable
 - **PSR-12** — code style konsisten dengan `declare(strict_types=1)`
-
-## Instalasi
-
-```
-/plugin marketplace add Sutrisno-tris032/laravel-blade-skills
-/plugin install laravel-blade@laravel-blade-skills
-```
-
-Perintah pertama mendaftarkan repositori GitHub ini sebagai marketplace; perintah kedua mengaktifkan
-plugin tersebut beserta skill `laravel-blade` di dalamnya. Untuk memperbarui nanti, jalankan
-`/plugin marketplace update-plugin laravel-blade` lalu install ulang.
 
 ## Struktur Skill
 
